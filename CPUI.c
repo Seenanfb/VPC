@@ -6,6 +6,7 @@ Program: This program is essentially a virtual CPU with terminal interface
 //Main includes
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <strings.h>
 #include <string.h>
@@ -306,7 +307,7 @@ void memMod(void *memory, unsigned offset)
 
     void dumpRegisters()
     {
-	int i = 0;
+	uint8_t i = 0;
 
 	while(i < sixteen)
 	{
@@ -337,27 +338,17 @@ void memMod(void *memory, unsigned offset)
 
 	fprintf(stdout,"\n"); 
 	fprintf(stdout,"\nSP: 0x%08lX \tCCR: %d%d%d (SCZ)  MBR: 0x%08lX  MAR: 0x%08lX\n", SP, tempsign, tempzero, tempcarry, mbr, mar);
-	fprintf(stdout,"LR: 0x%08lX \tIR: 0x%08lX  IR0: 0x%04lX      IR1: 0x%04lX\n", LR, ir, ir0(ir), ir1(ir));
+	fprintf(stdout,"LR: 0x%08lX \tIR: 0x%08lX  IR0: 0x%04lX      IR1: 0x%04lX\n", LR, ir, IR(ir), IR1(ir));
 	fprintf(stdout,"PC: 0x%08lX\n", PC);
 
 	fprintf(stdout,"\n"); 
 
-	fprintf(stdout,"Stop Flag: %d\n", stopflag); 
-	fprintf(stdout,"Active IR Flag: %d\n", irflag);
+	fprintf(stdout,"Stop Flag: %d\n", isSTOPset(stopflag)); 
+	fprintf(stdout,"Active IR Flag: %d\n", IRoneORtwo(irflag));
 
 
 	fprintf(stdout,"\n"); 
  
-    }
-    unsigned long int ir0(unsigned long irx)
-    { //For the first ir buffer
-	return irx >> sixteen;
-    }
-
-    unsigned long int ir1(unsigned long irx)
-    { //For the second ir buffer
-	unsigned long int ir1temp = irx << sixteen;
-	return ir0(ir1temp);
     }
 
     void zero()
@@ -423,11 +414,7 @@ void memMod(void *memory, unsigned offset)
 	mbr+=*((unsigned char *) memory + (mar++));
 	mbr=(mbr << aByte);
 
-
 	mbr+=*((unsigned char *) memory + (mar++));
-
-	//pull(&mbr, &mar, memory);
-	//can work too
 
 	ir=mbr;
 
@@ -447,9 +434,8 @@ void memMod(void *memory, unsigned offset)
 
 	return;
     }
-    void execute(unsigned int instr, void *memory)
+    void execute(uint16_t instr, void *memory)
     {
-
 
 	if(IMMinst(instr))
 	    immediate(instr);
@@ -492,11 +478,11 @@ void memMod(void *memory, unsigned offset)
 	return;
     }
 
-    void immediate(unsigned int instr)
+    void immediate(uint16_t instr)
     {
-	unsigned int op = IMMgetopcode(instr);
-	unsigned int rd = RD(instr);
-	unsigned int imm = IMMED(instr);
+	uint16_t op = IMMgetopcode(instr);
+	uint8_t rd = RD(instr);
+	uint16_t imm = IMMED(instr);
 
 	switch(op)
 	{

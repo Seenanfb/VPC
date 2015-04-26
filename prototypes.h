@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 void menu (void);
 char menuChoice(void);
 void holdDisplay();
@@ -6,18 +8,15 @@ void writeFile(void *);
 void memDump(void *, unsigned, unsigned);
 void memMod(void *, unsigned);
 
-unsigned long int ir0(unsigned long irx);
-unsigned long int ir1(unsigned long irx);
-
 void dumpRegisters(void);
 void zero(void);
 void fetch(void *);
 void trace(void);
 
 void go(void *);
-void execute(unsigned int, void *);
+void execute(uint16_t, void *);
 
-void immediate(unsigned int);
+void immediate(uint16_t);
 void data(unsigned int);
 void loadstore(unsigned int, void *);
 

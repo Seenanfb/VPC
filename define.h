@@ -169,6 +169,7 @@
 
 #define CONDopcode     0x0F00
 #define CONDaddr       0x00FF
+
 #define CONDGETop(x)   (CONDopcode & x)
 #define CONDGETaddr(x) (CONDaddr & x)
 
