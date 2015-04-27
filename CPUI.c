@@ -283,7 +283,7 @@ void memDump(void *memptr, unsigned offset, unsigned length)
 void memMod(void *memory, unsigned offset)
 {
 
-    char buff[123];
+/*    char buff[123];
 
     char *ptr;
     ptr = memory;
@@ -291,13 +291,15 @@ void memMod(void *memory, unsigned offset)
     memset(buff, 0, sizeof buff);
     buff[strlen(buff)] = '\0';
     int temp;
+    uint8_t b;
     int i, j;
     int lengthOfRow = sixteen;
     char *tempchar;
     int max = 0xFF;
 
-    if(offset >= MAXSIZE)
-        offset=0;
+//    if(offset >= MAXSIZE)
+//      offset=0;
+    offset = (offset >= MAXSIZE) ? 0 : offset;
 
     fprintf(stdout,"Enter starting address (enter . to exit): \n");
     holdDisplay();
@@ -305,20 +307,29 @@ void memMod(void *memory, unsigned offset)
     {
         fprintf(stdout,"\n");
         fprintf(stdout,"%04X %X>  ", offset, *((unsigned char*) memory+offset) );
-        fgets(buff, sizeof buff, stdin);
+        if(fgets(buff, sizeof buff, stdin)==NULL){
+                perror("fgets");
+        }
 
         if(buff[0] == '.')
             break;
 
-        fprintf(stdout,"\n");
+fprintf(stdout,"\n");
+
+fflush(stdout);
+
         if(sscanf(buff, "%X", &temp) == 0)
             perror("Non-hex digit found");
         else{
             if(temp > max){
                 fprintf(stdout,"Out of range...\n");
             }
-            else
+            else{
                 *((unsigned char*)memory + offset) = (unsigned char) temp;
+//              b = (uint8_t) strtoul(buff, NULL, 0x10);
+//              *((uint8_t *) memory + offset) = b;
+
+}
             if((offset+=1) == MAXSIZE)
                 return;
         }
@@ -326,8 +337,53 @@ void memMod(void *memory, unsigned offset)
     }
 
     fprintf(stdout,"\n");
-    return;
+    return;*/
+
+char buff[123];
+int temp;
+int max = 0xFF;
+    fprintf(stdout,"Enter starting address (enter . to exit): \n");
+
+if(offset >= MAXSIZE)
+offset=0;
+
+holdDisplay();
+
+buff[(strlen(buff) - 1)] = '\0';
+
+    while(1) {
+        fprintf(stdout,"\n");
+        fprintf(stdout,"%04X %X>  ", offset, *((unsigned char*) memory+offset) );
+        fgets(buff, 4, stdin);
+
+
+        if(buff[0] == '.'){
+            break;
+        }
+
+        if(sscanf(buff, "%X", &temp) == 0)
+            perror("Non-hex digit found");
+        else{
+            if(temp > max)
+                fprintf(stdout,"Out of range...\n");
+
+        }
+
+        fflush(stdout);
+
+        temp = (uint8_t) strtoul(buff, NULL, 0x10);
+
+        *((uint8_t *) memory + offset) = temp;
+
+        if(++offset == MAXSIZE)
+            return;
     }
+
+
+    return;
+
+
+}
 
 /*
         dumpRegisters
@@ -350,30 +406,11 @@ void memMod(void *memory, unsigned offset)
                 fprintf(stdout,"\n");
         }
 
-        if(ccr & 4)
-            tempsign==1;
-        else
-            tempsign==0;
-        if(ccr & 2)
-            tempzero==1;
-        else
-            tempzero=0;
-        if(ccr & 1)
-            tempcarry==1;
-        else
-            tempcarry=0;
-
         fprintf(stdout,"\n");
-        fprintf(stdout,"\nSP: 0x%08lX \tCCR: %d%d%d (SCZ)  MBR: 0x%08lX  MAR: 0x%08lX\n", SP, tempsign, tempzero, tempcarry, mbr, mar);
+        fprintf(stdout,"\nSP: 0x%08lX \tCCR: %d%d%d (SCZ)  MBR: 0x%08lX  MAR: 0x%08lX\n", SP, isCARRYset(ccr), isZEROset(ccr), isSIGNset(ccr), mbr, mar);
         fprintf(stdout,"LR: 0x%08lX \tIR: 0x%08lX  IR0: 0x%04lX      IR1: 0x%04lX\n", LR, ir, IR(ir), IR1(ir));
-        fprintf(stdout,"PC: 0x%08lX\n", PC);
-
-        fprintf(stdout,"\n");
-
-        fprintf(stdout,"Stop Flag: %d\n", isSTOPset(stopflag));
-        fprintf(stdout,"Active IR Flag: %d\n", IRoneORtwo(irflag));
-
-
+        fprintf(stdout,"PC: 0x%08lX \tStop Flag: %d    Active IR Flag: %d\n", PC, isSTOPset(stopflag), IRoneORtwo(irflag));
+        //Made the display more compact
         fprintf(stdout,"\n");
 
     }
@@ -398,10 +435,6 @@ void memMod(void *memory, unsigned offset)
         ALU = 0;
         ir = 0;
         ccr = 0;
-
-        tempsign = 0;
-        tempzero = 0;
-        tempcarry = 0;
 
         irflag = 0;
         stopflag = 0;

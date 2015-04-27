@@ -7,10 +7,6 @@ unsigned long ALU;
 static unsigned long ir;
 static unsigned long ccr;
 
-static unsigned int tempsign;
-static unsigned int tempzero;
-static unsigned int tempcarry;
-
 static int irflag = 0;
 static int stopflag = 0;
 
