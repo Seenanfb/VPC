@@ -1,7 +1,10 @@
 /*
-Name: Seenan Bunni
-Program: This program is essentially a virtual CPU with terminal interface
- */
+        Name: Seenan Bunni
+        Program: This program is essentially a virtual CPU with a terminal interface.
+        As well, it integrates some assembly language functions inside such as
+        determining the instruction type of assembly language code.
+
+*/
 
 //Main includes
 
@@ -23,16 +26,18 @@ Program: This program is essentially a virtual CPU with terminal interface
 
 #define false 0
 #define true !0
-#define sixteen 0x10
+#define sixteen 0x10 //Magic numbers? Not anymore.
 
-/*Assumptions
+/* Assumptions
 
   long is 4 bytes
 
-  Assumptions end*/
+  Assumptions end */
 
 
-unsigned char mem[MAXSIZE];
+unsigned char mem[MAXSIZE]; //Memory of file stored here..just because.
+
+//Main program
 
 int main(int argc, char * argv[],char * envp[])
 {
@@ -43,7 +48,7 @@ int main(int argc, char * argv[],char * envp[])
 
     fprintf(stdout,"Seenan Bunni - 821 622 107\n\n");
 
-    PC = 0;
+    PC = 0;     //PC shouldn't be any less or more than 0. Seriously.
 
     for(;;){
         choice=menuChoice();
@@ -75,7 +80,7 @@ int main(int argc, char * argv[],char * envp[])
             dumpRegisters();
         }
         else if(choice == 't' || choice == 'T'){
-            trace();
+            trace(mem, irflag, ir);
         }
         else if(choice == 'w' || choice == 'W'){
             writeFile(mem);
@@ -99,6 +104,7 @@ int main(int argc, char * argv[],char * envp[])
     return 0;
 }
 
+//menu
 
 void menu (void){
     fprintf(stdout,"\n");
@@ -115,6 +121,14 @@ void menu (void){
     fprintf(stdout,"\n");
 }
 
+/*
+        menuChoice
+
+        Gets the menu input. That's all.
+
+*/
+
+
 char menuChoice(void)
 {
     char choice = '\0';
@@ -123,15 +137,20 @@ char menuChoice(void)
     holdDisplay();
     return choice;
 }
+
+/*
+        loadFile
+
+        Loads a file into memory and reads it, truncating it if it's above 16K,
+        AND IF IT EXISTS.
+
+*/
 int loadFile(void *memory, unsigned int max)
 {
 
-    //Loads a file into memory and reads it, truncating it if it's above 16K
-    //IF IT EXISTS
 
     char buff[150];
     memset(buff, 0, sizeof buff);
-    //  bzero(buff, sizeof buff);
     FILE *thefile;
     int readin=0;
     struct stat stats;
@@ -139,7 +158,6 @@ int loadFile(void *memory, unsigned int max)
     int status;
     fprintf(stdout,"Enter name of a file...\n");
     fscanf(stdin, "%[^\n]", buff);
-    //fgets(buff, sizeof buff, stdin);
 
     thefile= fopen(buff, "rb");
     if(!thefile){
@@ -154,7 +172,6 @@ int loadFile(void *memory, unsigned int max)
     readin = fread(memory, (size_t) 1, (1*MAXSIZE), thefile);
 
     if(readin == MAXSIZE)
-        //if(filemax > MAXSIZE)
     {
         fprintf(stdout,"File larger than max file size (16KB)\n");
         fprintf(stdout,"File probably truncated.\n");
@@ -163,11 +180,20 @@ int loadFile(void *memory, unsigned int max)
     return readin;
 }
 
+
+/*
+
+        writeFile
+
+        Writes amount of bytes specified, to specified file
+
+
+*/
+
 void writeFile(void *memory)
 {
-    //Writes amount of bytes specified, to specified file
     //Some error checking included
-    char fname[150]; //People sometimes like writing "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" as a filename
+    char fname[150]; //People sometimes like writing "aaaaaaaaaaaaaaaaaaaaaaaaaaa" as a filename (ridiculous/long filenames)
     char buff[100];
     memset(fname, 0, sizeof fname);
     memset(buff, 0, sizeof buff);
@@ -182,28 +208,24 @@ void writeFile(void *memory)
     fscanf(stdin, "%[^\n]", fname);
 
     fprintf(stdout,"How many bytes should be written to file?\n");
-    // fgets(buff, sizeof buff, stdin);
-    scanf("%d", &bytes);
-    // sscanf(buff, "%d", &bytes);
-
-    //strcat(sizecheckcmd, fname);
-    //fprintf(stdout,"%s\n", fname);
-    //p = popen(sizecheckcmd, "rb");
-    //if(p)
-    //  fgets(pbuff, sizeof pbuff, p);
+    scanf("%d", &bytes); //scanf works fine/easier with digits, in my honest opinion
     while(bytes > MAXSIZE)
     {
-        fprintf(stdout,"Error: Enter amount lower than or equal to %d\n", MAXSIZE); scanf("%d", &bytes);
+        fprintf(stdout,"Error: Enter amount lower than or equal to %d\n", MAXSIZE);
+        scanf("%d", &bytes);
     }
-
-    //    else{
-    //  fprintf(stdout,"Error...Bytes must be an integer\n");
-    //  return;
-    //  }
 
     f = fopen(fname, "wb+");
     writein = fwrite(memory, (size_t) 1, bytes, f);
 }
+
+/*
+        memDump
+
+        Dumps the memory data from the offset,
+        to a specified length
+
+*/
 
 void memDump(void *memptr, unsigned offset, unsigned length)
 {
@@ -247,6 +269,17 @@ void memDump(void *memptr, unsigned offset, unsigned length)
     return;
 }
 
+/*
+        memMod
+
+        Modifies the memory in real-time. Exit by inputting "."
+        without the quotes.
+
+
+
+*/
+
+
 void memMod(void *memory, unsigned offset)
 {
 
@@ -278,15 +311,6 @@ void memMod(void *memory, unsigned offset)
             break;
 
         fprintf(stdout,"\n");
-        //      for(int i=0; strlen(buff); i++){
-        //          if(isxdigit((int) buff[i])){
-        //              sscanf(buff, "%2X", &temp);
-        //              *(ptr+offset) = (char) temp;
-        //          }
-        //          else
-        //              break;
-        //          if((offset+=1) == MAXSIZE)
-        //              return;
         if(sscanf(buff, "%X", &temp) == 0)
             perror("Non-hex digit found");
         else{
@@ -305,6 +329,12 @@ void memMod(void *memory, unsigned offset)
     return;
     }
 
+/*
+        dumpRegisters
+
+        Displays all registers in a format.
+
+*/
     void dumpRegisters()
     {
         uint8_t i = 0;
@@ -348,6 +378,13 @@ void memMod(void *memory, unsigned offset)
 
     }
 
+/*
+        zero
+
+        Clears all registers/makes them all = 0.
+
+*/
+
     void zero()
     {
 
@@ -370,6 +407,14 @@ void memMod(void *memory, unsigned offset)
         stopflag = 0;
     }
 
+/*
+        fetch
+
+        Fetches the next instruction from memory.
+
+*/
+
+
     void fetch(void *memory)
     {
         //Concept
@@ -378,25 +423,7 @@ void memMod(void *memory, unsigned offset)
         //IR <- MBR
         //PC <- PC+1(instruction) (+4?)
 
-        //ver 1
-        /*int i;
-          int loopend = 3;
-
-          mbr = 0;
-          mar = PC;
-          PC += 4;
-
-          for(i =0; i < 4; i++)
-          {
-          mbr += (unsigned long) *((char*)mem +(mar++));
-
-          if(i != loopend)
-          mbr = mbr << aByte;
-          }
-          ir = mbr;*/
-
-
-        //ver 2
+        //rev 2
 
         mbr=0;
         mar=PC;
@@ -417,25 +444,41 @@ void memMod(void *memory, unsigned offset)
 
         return;
     }
+/*
+        trace
 
-    void trace()
+        Traces through the program code, one line at a time
+*/
+    void trace(void *memory, int irflagx, unsigned long irx)
     {
 
-            if(irflag){
-                execute(IR1(ir), mem);
-                //continue;
+        unsigned long irnum  = IR1(irx);
+        unsigned long irnum1 = IR(irx);
+
+            if(irflagx){
+                execute(irnum, memory);
             }
             else {
-                fetch(mem);
-                execute(IR(ir), mem);
+                fetch(memory);
+                execute(irnum1, memory);
             }
-
-        //fprintf(stdout,"0x%08X >", (unsigned int) PC);
-
         dumpRegisters();
-
         return;
     }
+
+
+/*
+        execute
+
+        Deciphers the instruction type, and sends it
+        to the appropriate function to work with
+        that specific instruction type
+
+
+        The stop flag basically tells the
+        program to stop executing.
+
+*/
     void execute(uint16_t instr, void *memory)
     {
 
@@ -464,6 +507,14 @@ void memMod(void *memory, unsigned offset)
         return;
     }
 
+/*
+           go
+
+           Like Trace, it goes through the program code (runs the code)
+           But unlike trace, it goes through the *whole* code.
+           Not one line at a time.
+
+*/
     void go(void *memory)
     {
         while(!stopflag){
@@ -476,9 +527,21 @@ void memMod(void *memory, unsigned offset)
                 execute(IR(ir), memory);
             }
         }
-
+dumpRegisters();
         return;
     }
+
+/*
+
+        immediate
+
+        If the instruction type is deemed to be
+        immediate, it's sent here perform the
+        necessary immediate operations for the
+        instruction.
+
+
+*/
 
     void immediate(uint16_t instr)
     {
@@ -494,7 +557,7 @@ void memMod(void *memory, unsigned offset)
                 r[rd] = ALU;
                 break;
             case IMMcmp:
-                ALU = r[rd] & ~imm + 1;
+                ALU = r[rd] + ~imm + 1;
                 SZ();
                 break;
 
@@ -504,7 +567,7 @@ void memMod(void *memory, unsigned offset)
                 r[rd] = ALU;
                 break;
             case IMMsub:
-                ALU = r[rd] & ~imm + 1;
+                ALU = r[rd] + ~imm + 1;
                 SCZ(r[rd], ~(imm + 1));
                 r[rd] = ALU;
                 break;
@@ -512,6 +575,18 @@ void memMod(void *memory, unsigned offset)
 
         return;
     }
+
+
+/*
+        data
+
+        Like immediate, if the instruction type
+        is deemed to be a data instruction,
+        it's instead sent here.
+
+        Performs register to register operation.
+
+*/
 
 
     void data(unsigned int instr)
@@ -638,6 +713,17 @@ void memMod(void *memory, unsigned offset)
     }
 
 
+/*
+        loadstore
+
+        Performs the necessary load or store
+        function, if the instruction type
+        is deemed to be a load or store
+
+
+
+*/
+
     void loadstore(unsigned int instr, void *memory)
     {
         unsigned int rn = RN(instr);
@@ -655,6 +741,8 @@ void memMod(void *memory, unsigned offset)
             r[rd] = ALU;
         }
 
+        //STORE
+
         else
         {
             if(LSdword(instr)){
@@ -666,6 +754,16 @@ void memMod(void *memory, unsigned offset)
 
         }
     }
+
+/*
+        pushpull
+
+        This function handles the push and pull instruction.
+        It will store or load register values from memory
+        if need be.
+
+
+*/
 
     void pushpull(unsigned int instr, void *memory)
     {
@@ -730,6 +828,18 @@ void memMod(void *memory, unsigned offset)
 
     }
 
+
+/*
+
+        condbr
+
+        The function to handle conditional branch
+        instructions.
+
+*/
+
+
+
     void condbr(unsigned int instr)
     {
 
@@ -779,6 +889,15 @@ void memMod(void *memory, unsigned offset)
     }
 
 
+/*
+
+        uncondbr
+
+
+        This function will work with the unconditional branches
+        as opposed to conditional branches.
+
+*/
 
 void uncondbr(unsigned int instr, void *memory)
 {
@@ -801,6 +920,14 @@ void uncondbr(unsigned int instr, void *memory)
 return;
 }
 
+/*
+        push
+
+
+        Pushes a full register into memory.
+
+*/
+
 void push(unsigned long regist, unsigned long *marx, void *memory)
 {
     *((unsigned int *) memory + (*marx++)) = byte1(regist);
@@ -809,6 +936,18 @@ void push(unsigned long regist, unsigned long *marx, void *memory)
     *((unsigned int *) memory + *marx++) = byte4(regist);
     return;
 }
+
+
+/*
+
+        pull
+
+        (Can) pull a full register from memory, starting
+        from the most significant byte.
+
+
+*/
+
 
 void pull(unsigned long *mbrx, unsigned long *marx, void *memory)
 {
@@ -827,6 +966,8 @@ void pull(unsigned long *mbrx, unsigned long *marx, void *memory)
 }
 
 //SCZ -> Checks for SIGN, CARRY, and ZERO flags
+
+
 void SCZ(unsigned int op1, unsigned int op2)
 {
 
@@ -853,6 +994,8 @@ void SCZ(unsigned int op1, unsigned int op2)
 }
 
 //SZ -> Just checks for SIGN and ZERO flags
+//Stream-lines the process, basically.
+
 void SZ()
 {
 
@@ -874,6 +1017,13 @@ void SZ()
 }
 
 
+
+/*
+        isREGmask
+
+        Checks if it's a valid CCR mask
+*/
+
 unsigned int isREGMASK(unsigned int mask)
 {
     if(mask == SIGNF)
@@ -887,6 +1037,7 @@ unsigned int isREGMASK(unsigned int mask)
 
 }
 
+//Toggles valid flag (mask)
 
 void toggle(unsigned int mask, unsigned long *control)
 {
@@ -897,6 +1048,8 @@ void toggle(unsigned int mask, unsigned long *control)
     return;
 }
 
+//Sets the flag given
+
 void set(unsigned int mask, unsigned long *control)
 {
 
@@ -904,6 +1057,9 @@ void set(unsigned int mask, unsigned long *control)
         *control |= mask;
     return;
 }
+
+//Clears the given flag (sets it to 0)
+
 void clear(unsigned int mask, unsigned long *control)
 {
     if(isREGMASK(mask))

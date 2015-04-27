@@ -13,13 +13,13 @@
 
 //Check Instruction type(?)
 
-#define DATAinst(x)     ((DATAmask & ~x) == DATAmask)    ? 1 : 0
-#define LSinst(x)       ((LSmask & x) == LSmask)         ? 1 : 0
-#define IMMinst(x)      ((IMMmask & x) == IMMmask)       ? 1 : 0
-#define CONDBRinst(x)   ((CONDBRmask & x) == CONDBRmask) ? 1 : 0
-#define PSHPLLinst(x)   ((PSHPLLmask & x) == PSHPLLmask) ? 1 : 0
-#define UNBRinst(x)     ((UNBRmask & x) == UNBRmask)     ? 1 : 0
-#define STOPinst(x)     ((STOPmask & x) == STOPmask)     ? 1 : 0
+#define DATAinst(x)     ((instrMask & ~x) == DATAmask)  ? 1 : 0
+#define LSinst(x)       ((instrMask & x) == LSmask)     ? 1 : 0
+#define IMMinst(x)     (((instrMask & x) == IMMmask) || ((instrMask & x) == IMM2mask))    ? 1 : 0
+#define CONDBRinst(x)   ((instrMask & x) == CONDBRmask) ? 1 : 0
+#define PSHPLLinst(x)   ((instrMask & x) == PSHPLLmask) ? 1 : 0
+#define UNBRinst(x)     ((instrMask & x) == UNBRmask)   ? 1 : 0
+#define STOPinst(x)     ((instrMask & x) == STOPmask)   ? 1 : 0
 
 //Masks
 
@@ -27,11 +27,12 @@
 #define RNmask 0x00F0
 #define Rshift 4
 
-#define instrMask 0xF000
+#define instrMask 0xE000
 
 #define DATAmask   0xF000
 #define LSmask     0x2000
 #define IMMmask    0x4000
+#define IMM2mask   0x6000
 #define CONDBRmask 0x8000
 #define PSHPLLmask 0xA000
 #define UNBRmask   0xC000
@@ -127,7 +128,7 @@
 //Push/Pull
 
 #define LOWreg  7
-#define HIGHreg	8
+#define HIGHreg 8
 
 #define PPOPL 0x0800
 #define PPOPH 0x0400
@@ -184,5 +185,3 @@
 
 #define UNBRoffset    0x0FFF
 #define UNBRGEToff(x) (UNBRoffset & x)
-
-

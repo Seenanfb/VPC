@@ -1,4 +1,6 @@
-#include <stdint.h>
+//Prototypes
+
+#include <stdint.h> //This is for uintX_t types
 
 void menu (void);
 char menuChoice(void);
@@ -11,7 +13,7 @@ void memMod(void *, unsigned);
 void dumpRegisters(void);
 void zero(void);
 void fetch(void *);
-void trace(void);
+void trace(void *, int, unsigned long);
 
 void go(void *);
 void execute(uint16_t, void *);
@@ -41,4 +43,3 @@ unsigned int getRD(unsigned int);
 unsigned int getRN(unsigned int);
 
 int iscarry(unsigned long, unsigned long, unsigned);
-
