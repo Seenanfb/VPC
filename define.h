@@ -1,4 +1,14 @@
 
+/*
+Name: Seenan Bunni
+define.h
+
+Header file that holds all the
+necessary macros and specific/special
+defines for the CPU functions.
+
+ */
+
 //Byte defines and Flags
 
 #define aByte 8
@@ -48,7 +58,7 @@
 #define IR(x)   (x & IRmask) >> sixteen
 #define IR1(x)  (x & IR1mask)
 
-//Some register/instruction definitions
+//Some register/instruction size definitions
 
 #define regsize   4
 #define instrsize 2
@@ -119,10 +129,16 @@
 #define LSload(x)  ((LSLmask & x) == LSLmask) ? 1 : 0
 #define LSdword(x) ((LSBmask & x) == LSBmask) ? 1 : 0
 
+//Different Byte Shifting
+
 #define byte1(x) (0xFF & x)
 #define byte2(x) ((0xFF00 & x) >> aByte)
 #define byte3(x) ((0xFF0000 & x) >> aByte)
 #define byte4(x) ((0xFF000000 & x) >> aByte)
+
+#define shift1 8
+#define shift2 16
+#define shift3 24
 
 
 //Push/Pull

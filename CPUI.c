@@ -1,10 +1,12 @@
 /*
-        Name: Seenan Bunni
-        Program: This program is essentially a virtual CPU with a terminal interface.
-        As well, it integrates some assembly language functions inside such as
-        determining the instruction type of assembly language code.
+Name: Seenan Bunni
+Program: This program is essentially a virtual ARM-based CPU with
+a developed terminal user-interface.
 
-*/
+As well, it integrates some assembly language functions inside such as
+determining the instruction type of assembly language instructions.
+
+ */
 
 //Main includes
 
@@ -15,9 +17,9 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "prototypes.h"
-#include "define.h"
-#include "registers.h"
+#include "prototypes.h" //Prototypes header
+#include "define.h"     //Holds all defines (header file)
+#include "registers.h"  //File that holds all register variables
 
 //Some general defines
 
@@ -30,9 +32,9 @@
 
 /* Assumptions
 
-  long is 4 bytes
+   long is 4 bytes
 
-  Assumptions end */
+   Assumptions end */
 
 
 unsigned char mem[MAXSIZE]; //Memory of file stored here..just because.
@@ -43,20 +45,20 @@ int main(int argc, char * argv[],char * envp[])
 {
     char choice = '\0';
     int max = MAXSIZE;
-    int read;
+    unsigned int read;
     unsigned offset, length;
 
     fprintf(stdout,"Seenan Bunni - 821 622 107\n\n");
 
-    PC = 0;     //PC shouldn't be any less or more than 0. Seriously.
+    zero();     //Nothing should be in the registers.
 
     for(;;){
         choice=menuChoice();
         if(choice == 'd' || choice == 'D'){
             fprintf(stdout,"Enter offset: ");
-            fscanf(stdin, "%X", &offset);
+            fscanf(stdin, "%X",  &offset);
             fprintf(stdout,"\nEnter length: ");
-            fscanf(stdin, "%X", &length);
+            fscanf(stdin, "%X",  &length);
             //  if(offset+length > MAXSIZE)
             //          perror("
             memDump(mem, offset, length);
@@ -73,7 +75,7 @@ int main(int argc, char * argv[],char * envp[])
         }
         else if(choice == 'm' || choice == 'M'){
             fprintf(stdout,"Enter offset: ");
-            fscanf(stdin, "%X", &offset);
+            fscanf(stdin, "%X",  &offset);
             memMod(mem, offset);
         }
         else if(choice == 'r' || choice == 'R'){
@@ -122,11 +124,11 @@ void menu (void){
 }
 
 /*
-        menuChoice
+   menuChoice
 
-        Gets the menu input. That's all.
+   Gets the menu input. That's all.
 
-*/
+ */
 
 
 char menuChoice(void)
@@ -139,23 +141,26 @@ char menuChoice(void)
 }
 
 /*
-        loadFile
+   loadFile
 
-        Loads a file into memory and reads it, truncating it if it's above 16K,
-        AND IF IT EXISTS.
+   Loads a file into memory and reads it, truncating it if it's above 16K,
+   AND IF IT EXISTS.
 
-*/
-int loadFile(void *memory, unsigned int max)
+ */
+int loadFile(void *memory, uint16_t max)
 {
 
 
     char buff[150];
-    memset(buff, 0, sizeof buff);
     FILE *thefile;
     int readin=0;
     struct stat stats;
     int filemax=0;
     int status;
+
+
+    memset(buff, 0, sizeof buff);
+
     fprintf(stdout,"Enter name of a file...\n");
     fscanf(stdin, "%[^\n]", buff);
 
@@ -183,20 +188,18 @@ int loadFile(void *memory, unsigned int max)
 
 /*
 
-        writeFile
+   writeFile
 
-        Writes amount of bytes specified, to specified file
+   Writes amount of bytes specified, to specified file
 
 
-*/
+ */
 
 void writeFile(void *memory)
 {
     //Some error checking included
     char fname[150]; //People sometimes like writing "aaaaaaaaaaaaaaaaaaaaaaaaaaa" as a filename (ridiculous/long filenames)
     char buff[100];
-    memset(fname, 0, sizeof fname);
-    memset(buff, 0, sizeof buff);
     int bytes=0;
     FILE *f;
     int writein=0;
@@ -204,15 +207,18 @@ void writeFile(void *memory)
     FILE *p;
     char pbuff[100];
 
+    memset(fname, 0, sizeof fname);
+    memset(buff, 0, sizeof buff);
+
     fprintf(stdout,"Enter file name...\n");
     fscanf(stdin, "%[^\n]", fname);
 
     fprintf(stdout,"How many bytes should be written to file?\n");
-    scanf("%d", &bytes); //scanf works fine/easier with digits, in my honest opinion
+    fscanf(stdin, "%d", &bytes);
     while(bytes > MAXSIZE)
     {
         fprintf(stdout,"Error: Enter amount lower than or equal to %d\n", MAXSIZE);
-        scanf("%d", &bytes);
+        fscanf(stdin, "%d", &bytes);
     }
 
     f = fopen(fname, "wb+");
@@ -220,20 +226,20 @@ void writeFile(void *memory)
 }
 
 /*
-        memDump
+   memDump
 
-        Dumps the memory data from the offset,
-        to a specified length
+   Dumps the memory data from the offset,
+   to a specified length
 
-*/
+ */
 
-void memDump(void *memptr, unsigned offset, unsigned length)
+void memDump(void *memptr, uint16_t offset, uint16_t length)
 {
     //isprint
+    uint16_t i, j;
     char *ptr;
-    ptr = memptr;
-    int i, j;
     int lengthOfRow = sixteen;
+    ptr = memptr;
 
     for(i = offset; i < (offset + length); i+= lengthOfRow)
     {
@@ -241,7 +247,7 @@ void memDump(void *memptr, unsigned offset, unsigned length)
 
         for(j = i; j < (i + lengthOfRow); j++)
         {
-            fprintf(stdout,"%02X  ", (unsigned char) *(ptr + j));
+            fprintf(stdout,"%02X  ", (uint8_t) *(ptr + j));
             if(j == (offset+length))
                 break;
         }
@@ -270,86 +276,30 @@ void memDump(void *memptr, unsigned offset, unsigned length)
 }
 
 /*
-        memMod
+   memMod
 
-        Modifies the memory in real-time. Exit by inputting "."
-        without the quotes.
-
-
-
-*/
+   Modifies the memory in real-time. Exit by inputting "."
+   without the quotes.
 
 
-void memMod(void *memory, unsigned offset)
+ */
+
+
+void memMod(void *memory, uint16_t offset)
 {
 
-/*    char buff[123];
-
-    char *ptr;
-    ptr = memory;
-
-    memset(buff, 0, sizeof buff);
-    buff[strlen(buff)] = '\0';
+    char buff[123];
     int temp;
-    uint8_t b;
-    int i, j;
-    int lengthOfRow = sixteen;
-    char *tempchar;
     int max = 0xFF;
 
-//    if(offset >= MAXSIZE)
-//      offset=0;
-    offset = (offset >= MAXSIZE) ? 0 : offset;
-
     fprintf(stdout,"Enter starting address (enter . to exit): \n");
+
+    if(offset >= MAXSIZE)
+        offset=0;
+
     holdDisplay();
-    while(1)
-    {
-        fprintf(stdout,"\n");
-        fprintf(stdout,"%04X %X>  ", offset, *((unsigned char*) memory+offset) );
-        if(fgets(buff, sizeof buff, stdin)==NULL){
-                perror("fgets");
-        }
 
-        if(buff[0] == '.')
-            break;
-
-fprintf(stdout,"\n");
-
-fflush(stdout);
-
-        if(sscanf(buff, "%X", &temp) == 0)
-            perror("Non-hex digit found");
-        else{
-            if(temp > max){
-                fprintf(stdout,"Out of range...\n");
-            }
-            else{
-                *((unsigned char*)memory + offset) = (unsigned char) temp;
-//              b = (uint8_t) strtoul(buff, NULL, 0x10);
-//              *((uint8_t *) memory + offset) = b;
-
-}
-            if((offset+=1) == MAXSIZE)
-                return;
-        }
-        offset++;
-    }
-
-    fprintf(stdout,"\n");
-    return;*/
-
-char buff[123];
-int temp;
-int max = 0xFF;
-    fprintf(stdout,"Enter starting address (enter . to exit): \n");
-
-if(offset >= MAXSIZE)
-offset=0;
-
-holdDisplay();
-
-buff[(strlen(buff) - 1)] = '\0';
+    buff[(strlen(buff) - 1)] = '\0';
 
     while(1) {
         fprintf(stdout,"\n");
@@ -386,622 +336,665 @@ buff[(strlen(buff) - 1)] = '\0';
 }
 
 /*
-        dumpRegisters
+   dumpRegisters
 
-        Displays all registers in a format.
+   Displays all registers in a format.
 
-*/
-    void dumpRegisters()
-    {
-        uint8_t i = 0;
-
-        while(i < sixteen)
-        {
-            fprintf(stdout,"R%02d:  0x%08lX ", (i), r[i]);
-            i++;
-            if(i == 13)
-                break;
-
-            if(i % 4 == 0)
-                fprintf(stdout,"\n");
-        }
-
-        fprintf(stdout,"\n");
-        fprintf(stdout,"\nSP: 0x%08lX \tCCR: %d%d%d (SCZ)  MBR: 0x%08lX  MAR: 0x%08lX\n", SP, isCARRYset(ccr), isZEROset(ccr), isSIGNset(ccr), mbr, mar);
-        fprintf(stdout,"LR: 0x%08lX \tIR: 0x%08lX  IR0: 0x%04lX      IR1: 0x%04lX\n", LR, ir, IR(ir), IR1(ir));
-        fprintf(stdout,"PC: 0x%08lX \tStop Flag: %d    Active IR Flag: %d\n", PC, isSTOPset(stopflag), IRoneORtwo(irflag));
-        //Made the display more compact
-        fprintf(stdout,"\n");
-
-    }
-
-/*
-        zero
-
-        Clears all registers/makes them all = 0.
-
-*/
-
-    void zero()
-    {
-
-        int i;
-        //sixteen = 0x10
-        for(i=0; i < 16; i++)
-            r[i] = 0;
-
-        mbr = 0;
-        mar = 0;
-        ALU = 0;
-        ir = 0;
-        ccr = 0;
-
-        irflag = 0;
-        stopflag = 0;
-    }
-
-/*
-        fetch
-
-        Fetches the next instruction from memory.
-
-*/
-
-
-    void fetch(void *memory)
-    {
-        //Concept
-        //MAR <- PC
-        //MBR <- mem[MAR]
-        //IR <- MBR
-        //PC <- PC+1(instruction) (+4?)
-
-        //rev 2
-
-        mbr=0;
-        mar=PC;
-        PC+=4;
-
-        mbr+=*((unsigned char *) memory + (mar++));
-        mbr=(mbr << aByte);
-
-        mbr+=*((unsigned char *) memory + (mar++));
-        mbr=(mbr << aByte);
-
-        mbr+=*((unsigned char *) memory + (mar++));
-        mbr=(mbr << aByte);
-
-        mbr+=*((unsigned char *) memory + (mar++));
-
-        ir=mbr;
-
-        return;
-    }
-/*
-        trace
-
-        Traces through the program code, one line at a time
-*/
-    void trace(void *memory, int irflagx, unsigned long irx)
-    {
-
-        unsigned long irnum  = IR1(irx);
-        unsigned long irnum1 = IR(irx);
-
-            if(irflagx){
-                execute(irnum, memory);
-            }
-            else {
-                fetch(memory);
-                execute(irnum1, memory);
-            }
-        dumpRegisters();
-        return;
-    }
-
-
-/*
-        execute
-
-        Deciphers the instruction type, and sends it
-        to the appropriate function to work with
-        that specific instruction type
-
-
-        The stop flag basically tells the
-        program to stop executing.
-
-*/
-    void execute(uint16_t instr, void *memory)
-    {
-
-        if(IMMinst(instr))
-            immediate(instr);
-        if(DATAinst(instr))
-            data(instr);
-        if(LSinst(instr))
-          loadstore(instr, memory);
-        if(PSHPLLinst(instr))
-            pushpull(instr, memory);
-        if(CONDBRinst(instr))
-                condbr(instr);
-        if(UNBRinst(instr))
-                uncondbr(instr, memory);
-
-
-        if(STOPinst(instr)){
-            set(STOPF, (unsigned long *) &stopflag);
-        return;
-        }
-
-        toggle(IRF, (unsigned long *) &irflag);
-
-
-        return;
-    }
-
-/*
-           go
-
-           Like Trace, it goes through the program code (runs the code)
-           But unlike trace, it goes through the *whole* code.
-           Not one line at a time.
-
-*/
-    void go(void *memory)
-    {
-        while(!stopflag){
-            if(irflag){
-                execute(IR1(ir), memory);
-                continue;
-            }
-            else {
-                fetch(memory);
-                execute(IR(ir), memory);
-            }
-        }
-dumpRegisters();
-        return;
-    }
-
-/*
-
-        immediate
-
-        If the instruction type is deemed to be
-        immediate, it's sent here perform the
-        necessary immediate operations for the
-        instruction.
-
-
-*/
-
-    void immediate(uint16_t instr)
-    {
-        uint16_t op = IMMgetopcode(instr);
-        uint8_t rd = RD(instr);
-        uint16_t imm = IMMED(instr);
-
-        switch(op)
-        {
-            case IMMmov:
-                ALU = imm;
-                SZ();
-                r[rd] = ALU;
-                break;
-            case IMMcmp:
-                ALU = r[rd] + ~imm + 1;
-                SZ();
-                break;
-
-            case IMMadd:
-                ALU = r[rd] + imm;
-                SCZ(r[rd], imm);
-                r[rd] = ALU;
-                break;
-            case IMMsub:
-                ALU = r[rd] + ~imm + 1;
-                SCZ(r[rd], ~(imm + 1));
-                r[rd] = ALU;
-                break;
-        }
-
-        return;
-    }
-
-
-/*
-        data
-
-        Like immediate, if the instruction type
-        is deemed to be a data instruction,
-        it's instead sent here.
-
-        Performs register to register operation.
-
-*/
-
-
-    void data(unsigned int instr)
-    {
-
-        unsigned long i;
-        unsigned int rd = RD(instr);
-        unsigned int rn = RN(instr);
-        unsigned int op = dataGETOP(instr);
-
-        switch(op)
-        {
-            case ANDcode:
-                ALU = r[rd] & r[rn];
-                SZ();
-                r[rd] = ALU;
-                break;
-
-            case EORcode:
-                ALU = r[rd] ^ r[rn];
-                SZ();
-                r[rd] = ALU;
-                break;
-
-            case SUBcode:
-                ALU = r[rd] + ~r[rn] + 1;
-                SCZ(rd, ~(rn+1));
-                r[rd] = ALU;
-                break;
-
-            case SXBcode:
-                ALU = (aByteMASK & r[rn]);
-                SZ();
-                r[rd] = ALU;
-                break;
-
-            case ADDcode:
-                ALU = r[rd] + r[rn];
-                SCZ(rd, rn);
-                r[rd] = ALU;
-                break;
-
-            case ADCcode:
-                ALU = r[rd] + r[rn] + isCARRYset(ccr);
-                SCZ(rd, rn);
-                r[rd] = ALU;
-                break;
-
-            case LSRcode:
-                ALU = r[rd] >> (r[rn] - 1);
-                if(hasLSB(ALU))
-                    set(CARRYF, &ccr);
-                ALU = ALU >> 1;
-                SZ();
-
-                r[rd] = ALU;
-                break;
-
-            case LSLcode:
-                ALU = r[rd] << (r[rn] - 1);
-                if(hasMSB(ALU))
-                    set(CARRYF, &ccr);
-                ALU = ALU << 1;
-                SZ();
-                r[rd] = ALU;
-                break;
-
-            case TSTcode:
-                ALU = r[rd] & r[rn];
-                SCZ(rd, rn);
-                break;
-
-            case TEQcode:
-                ALU = r[rd] ^ r[rn];
-                SCZ(rd, rn);
-                break;
-
-            case CMPcode:
-                ALU = r[rd] + ~r[rn] + 1;
-                SCZ(rd, rn);
-                break;
-
-            case RORcode:
-                ALU = r[rd];
-
-                for(i = 0; i < r[rn]; i++){
-                    if(hasLSB(ALU))
-                        set(CARRYF, &ccr);
-
-                    ALU = ALU >> 1;
-
-                    if(isCARRYset(ccr))
-                        ALU |= MostSBmask;
-                }
-                SZ();
-                r[rd] = ALU;
-                break;
-
-            case ORRcode:
-                ALU = r[rd] | r[rn];
-                SZ();
-                r[rd] = ALU;
-                break;
-
-            case MOVcode:
-                ALU = r[rn];
-                SZ();
-                r[rd] = ALU;
-                break;
-            case BICcode:
-                ALU = ~(r[rd] & r[rd]);
-                SZ();
-                r[rd] = ALU;
-                break;
-
-            case MVNcode:
-                ALU = ~r[rn];
-                SZ();
-                r[rd] = ALU;
-                break;
-        }
-
-
-    }
-
-
-/*
-        loadstore
-
-        Performs the necessary load or store
-        function, if the instruction type
-        is deemed to be a load or store
-
-
-
-*/
-
-    void loadstore(unsigned int instr, void *memory)
-    {
-        unsigned int rn = RN(instr);
-        unsigned int rd = RD(instr);
-
-        //LOAD
-
-        if(LSload(instr))
-        {
-            if(LSdword(instr))
-                pull(&ALU, ((unsigned long *) &rn), memory);
-            else
-                ALU = *((unsigned int *) memory + rn);
-
-            r[rd] = ALU;
-        }
-
-        //STORE
-
-        else
-        {
-            if(LSdword(instr)){
-                mbr = r[rd];
-                push(mbr, ((unsigned long *) &rn), memory);
-            }
-            else
-                *((unsigned int *) memory + rn) = (unsigned int) r[rd] & aByteMASK;
-
-        }
-    }
-
-/*
-        pushpull
-
-        This function handles the push and pull instruction.
-        It will store or load register values from memory
-        if need be.
-
-
-*/
-
-    void pushpull(unsigned int instr, void *memory)
-    {
-
-        unsigned int i, j;
-        unsigned int maskset[] = {
-            regmask1, regmask2, regmask3,
-            regmask4, regmask5, regmask6,
-            regmask7, regmask8 };
-
-        unsigned int REGset = PPGETreg(instr);
-
-
-        //PUSH
-
-        if(PPush(instr)){
-            if(PPextra(instr))
-                push(LR, &mar, memory);
-            if(PPhigh(instr))
-                for(i = HIGHreg, j = 0; i < sixteen; i++)
-                {
-                    if(maskset[j++] & REGset)
-                    {
-                        SP = (SP - regsize);
-                        push(r[i], &mar, memory);
-                    }
-                }
-            else
-                for(i = 0; i <= LOWreg; i++)
-                    if(maskset[i] & REGset){
-                        SP = (SP - regsize);
-                        push(r[i], &mar, memory);
-                    }
-
-        }
-
-        //PULL
-
-        else {
-
-            if(PPhigh(instr))
-                for(i = HIGHreg, j = sixteen; i >= HIGHreg; i--)
-                    if(maskset[j--] & REGset)
-                    {
-                        pull(&mbr, &mar, memory);
-                        SP = (SP + regsize);
-                    }
-                    else
-                        for(i = LOWreg; i <= 0; i--)
-                            if(maskset[i] & REGset)
-                            {
-                                pull(&mbr, &mar, memory);
-                                SP = (SP + regsize);
-                            }
-
-            if(PPextra(instr))
-                pull(&PC, &mar, memory);
-
-        }
-
-        return;
-
-    }
-
-
-/*
-
-        condbr
-
-        The function to handle conditional branch
-        instructions.
-
-*/
-
-
-
-    void condbr(unsigned int instr)
-    {
-
-
-        int addr = CONDGETaddr(instr);
-
-        switch(CONDGETop(instr))
-        {
-
-            case CONDal:
-                PC += addr;
-                break;
-            case CONDeq:
-                if(isZEROset(ccr))
-                    PC += addr;
-                break;
-            case CONDne:
-                if(!isZEROset(ccr))
-                    PC+=addr;
-                break;
-            case CONDcs:
-                if(isCARRYset(ccr))
-                    PC+=addr;
-                break;
-            case CONDcc:
-                if(!isCARRYset(ccr))
-                    PC+=addr;
-                break;
-            case CONDmi:
-                if(isSIGNset(ccr))
-                    PC+=addr;
-                break;
-            case CONDpl:
-                if(!isSIGNset(ccr))
-                    PC+=addr;
-                break;
-            case CONDhi:
-                if(isCARRYset(ccr) && !isSIGNset(ccr))
-                    PC+=addr;
-                break;
-            case CONDls:
-                if(!isCARRYset(ccr) && isSIGNset(ccr))
-                    PC+=addr;
-                break;
-        }
-
-    }
-
-
-/*
-
-        uncondbr
-
-
-        This function will work with the unconditional branches
-        as opposed to conditional branches.
-
-*/
-
-void uncondbr(unsigned int instr, void *memory)
+ */
+void dumpRegisters()
 {
+    uint8_t i = 0;
 
+    while(i < sixteen)
+    {
+        fprintf(stdout,"R%02d:  0x%08X ", (i), r[i]);
+        i++;
+        if(i == 13)
+            break;
 
-        unsigned int addr = UNBRGEToff(instr);
+        if(i % 4 == 0)
+            fprintf(stdout,"\n");
+    }
 
-        mar=addr;
+    fprintf(stdout,"\n");
+    fprintf(stdout,"\nSP: 0x%08X \tCCR: %d%d%d (SCZ)  MBR: 0x%08X  MAR: 0x%08X\n", SP, isCARRYset(ccr), isZEROset(ccr), isSIGNset(ccr), mbr, mar);
+    fprintf(stdout,"LR: 0x%08X \tIR: 0x%08X  IR0: 0x%04X      IR1: 0x%04X\n", LR, ir, IR(ir), IR1(ir));
+    fprintf(stdout,"PC: 0x%08X \tStop Flag: %d    Active IR Flag: %d\n", PC, isSTOPset(stopflag), IRoneORtwo(irflag));
+    //Made the display more compact
+    fprintf(stdout,"\n");
 
-        if(isUNBRA(instr)){
-                PC = (unsigned long) addr;
-        return;
-        }
-
-        if(isUNBRL(instr)){
-                push(LR, &mar, memory);
-                PC = (unsigned long) addr;
-        return;
-        }
-return;
 }
 
 /*
-        push
+   zero
 
+   Clears all registers/makes them all = 0.
 
-        Pushes a full register into memory.
+ */
 
-*/
-
-void push(unsigned long regist, unsigned long *marx, void *memory)
+void zero()
 {
-    *((unsigned int *) memory + (*marx++)) = byte1(regist);
-    *((unsigned int *) memory + (*marx++)) = byte2(regist);
-    *((unsigned int *) memory + (*marx++)) = byte3(regist);
-    *((unsigned int *) memory + *marx++) = byte4(regist);
+
+    int i;
+    //sixteen = 0x10
+    for(i=0; i < 16; i++)
+        r[i] = 0;
+
+    mbr = 0;
+    mar = 0;
+    ALU = 0;
+    ir = 0;
+    ccr = 0;
+
+    irflag = 0;
+    stopflag = 0;
+}
+
+/*
+   fetch
+
+   Fetches the next instruction from memory.
+
+ */
+
+
+void fetch(void *memory)
+{
+    //Concept
+    //MAR <- PC
+    //MBR <- mem[MAR]
+    //IR <- MBR
+    //PC <- PC+1(instruction) (+4?)
+
+    //It seems to work even if PC+=4 is before ir=mbr
+    //rev 2
+
+    mbr=0;
+    mar=PC;
+
+       mbr+=*((uint8_t *) memory + (mar++));
+       mbr=(mbr << aByte);
+
+       mbr+=*((uint8_t *) memory + (mar++));
+       mbr=(mbr << aByte);
+
+       mbr+=*((uint8_t *) memory + (mar++));
+       mbr=(mbr << aByte);
+
+       mbr+=*((uint8_t *) memory + (mar++));
+
+    //unsigned char works the same as uint8_t
+
+
+//    pull(&mbr, &mar, memory);
+//    Works the same.
+
+    ir=mbr;
+
+    PC+=4;
+
+
+
+    return;
+}
+/*
+   trace
+
+   Traces through the program code, one line at a time
+ */
+void trace(void *memory, uint8_t irflagx, uint32_t irx)
+{
+
+    uint32_t irnum  = IR1(irx);
+    uint32_t irnum1 = IR(irx);
+
+    if(irflagx){
+        execute(irnum, memory);
+    }
+    else {
+        fetch(memory);
+        execute(irnum1, memory);
+    }
+    dumpRegisters();
     return;
 }
 
 
 /*
+   execute
 
-        pull
-
-        (Can) pull a full register from memory, starting
-        from the most significant byte.
-
-
-*/
+   Deciphers the instruction type, and sends it
+   to the appropriate function to work with
+   that specific instruction type
 
 
-void pull(unsigned long *mbrx, unsigned long *marx, void *memory)
+   The stop flag basically tells the
+   program to stop executing.
+
+ */
+void execute(uint16_t instr, void *memory)
 {
 
-    *mbrx = *((unsigned int *) memory + (*marx)++);
+    if(IMMinst(instr))
+        immediate(instr);
+    if(DATAinst(instr))
+        data(instr);
+    if(LSinst(instr))
+        loadstore(instr, memory);
+    if(PSHPLLinst(instr))
+        pushpull(instr, memory);
+    if(CONDBRinst(instr))
+        condbr(instr);
+    if(UNBRinst(instr))
+        uncondbr(instr, memory);
+
+
+    if(STOPinst(instr)){
+        set(STOPF, (uint32_t *) &stopflag);
+        return;
+    }
+
+    toggle(IRF, (uint32_t *) &irflag);
+
+
+    return;
+}
+
+/*
+   go
+
+   Like Trace, it goes through the program code (runs the code)
+   But unlike trace, it goes through the *whole* code.
+   Not one line at a time.
+
+ */
+void go(void *memory)
+{
+
+    if(stopflag)
+        return;
+
+    while(!stopflag){
+        if(irflag){
+            execute(IR1(ir), memory);
+        }
+        else {
+            fetch(memory);
+            execute(IR(ir), memory);
+        }
+    }
+    dumpRegisters();
+    return;
+}
+
+/*
+
+   immediate
+
+   If the instruction type is deemed to be
+   immediate, it's sent here to perform the
+   necessary immediate operations for the
+   instruction.
+
+
+ */
+
+void immediate(uint16_t instr)
+{
+    uint16_t op = IMMgetopcode(instr);
+    uint8_t rd = RD(instr);
+    uint16_t imm = IMMED(instr);
+    //uint_t not necessary
+    //But it still works that way
+    //Was mainly for testing purposes
+
+    switch(op)
+    {
+        case IMMmov:
+            ALU = imm;
+            SZ();
+            r[rd] = ALU;
+            break;
+        case IMMcmp:
+            ALU = r[rd] + ~imm + 1;
+            SZ();
+            break;
+        case IMMadd:
+            ALU = r[rd] + imm;
+            SCZ(r[rd], imm);
+            r[rd] = ALU;
+            break;
+        case IMMsub:
+            ALU = r[rd] + ~imm + 1;
+            SCZ(r[rd], ~(imm + 1));
+            r[rd] = ALU;
+            break;
+    }
+
+    return;
+}
+
+
+/*
+   data
+
+   Like immediate, if the instruction type
+   is deemed to be a data instruction,
+   it's instead sent here.
+
+   Performs register to register operation.
+
+ */
+
+
+void data(uint16_t instr)
+{
+
+    uint32_t i;
+
+    uint8_t rd = RD(instr);
+    uint8_t rn = RN(instr);
+    uint16_t op = dataGETOP(instr);
+
+    switch(op)
+    {
+        case ANDcode:
+            ALU = r[rd] & r[rn];
+            SZ();
+            r[rd] = ALU;
+            break;
+        case EORcode:
+            ALU = r[rd] ^ r[rn];
+            SZ();
+            r[rd] = ALU;
+            break;
+        case SUBcode:
+            ALU = r[rd] + ~r[rn] + 1;
+            SCZ(rd, ~(rn+1));
+            r[rd] = ALU;
+            break;
+        case SXBcode:
+            ALU = (aByteMASK & r[rn]);
+            SZ();
+            r[rd] = ALU;
+            break;
+        case ADDcode:
+            ALU = r[rd] + r[rn];
+            SCZ(rd, rn);
+            r[rd] = ALU;
+            break;
+        case ADCcode:
+            ALU = r[rd] + r[rn] + isCARRYset(ccr);
+            SCZ(rd, rn);
+            r[rd] = ALU;
+            break;
+        case LSRcode:
+            ALU = r[rd] >> (r[rn] - 1);
+            if(hasLSB(ALU))
+                set(CARRYF, &ccr);
+            ALU = ALU >> 1;
+            SZ();
+            r[rd] = ALU;
+            break;
+        case LSLcode:
+            ALU = r[rd] << (r[rn] - 1);
+            if(hasMSB(ALU))
+                set(CARRYF, &ccr);
+            ALU = ALU << 1;
+            SZ();
+            r[rd] = ALU;
+            break;
+        case TSTcode:
+            ALU = r[rd] & r[rn];
+            SCZ(rd, rn);
+            break;
+        case TEQcode:
+            ALU = r[rd] ^ r[rn];
+            SCZ(rd, rn);
+            break;
+        case CMPcode:
+            ALU = r[rd] + ~r[rn] + 1;
+            SCZ(rd, rn);
+            break;
+        case RORcode:
+            ALU = r[rd];
+
+            for(i = 0; i < r[rn]; i++){
+                if(hasLSB(ALU))
+                    set(CARRYF, &ccr);
+
+                ALU = ALU >> 1;
+
+                if(isCARRYset(ccr))
+                    ALU |= MostSBmask;
+            }
+            SZ();
+            r[rd] = ALU;
+            break;
+
+        case ORRcode:
+            ALU = r[rd] | r[rn];
+            SZ();
+            r[rd] = ALU;
+            break;
+
+        case MOVcode:
+            ALU = r[rn];
+            SZ();
+            r[rd] = ALU;
+            break;
+        case BICcode:
+            ALU = ~(r[rd] & r[rd]);
+            SZ();
+            r[rd] = ALU;
+            break;
+
+        case MVNcode:
+            ALU = ~r[rn];
+            SZ();
+            r[rd] = ALU;
+            break;
+    }
+
+    ALU=0;
+    return;
+}
+
+
+/*
+   loadstore
+
+   Performs the necessary load or store
+   function, if the instruction type
+   is deemed to be a load or store
+
+ */
+
+uint32_t load(uint32_t marx, void *memory)
+{
+        unsigned int i;
+
+        mar = marx;
+
+        for(i = 0; i < 4; i++){
+        mbr = mbr << aByte;
+        mbr += *((unsigned char *) memory + mar);
+        }
+
+        return mbr;
+
+}
+
+void store(uint32_t marx, uint32_t mbrx, void *memory)
+{
+
+mar = marx;
+mbr = mbrx;
+
+*((unsigned char *) memory + mar++) = (unsigned char)(mbr >> shift3 & aByteMASK);
+
+*((unsigned char *) memory + mar++) = (unsigned char)(mbr >> shift2 & aByteMASK);
+*((unsigned char *) memory + mar++) = (unsigned char)(mbr >> shift1 & aByteMASK);
+
+*((unsigned char *) memory + mar) = (unsigned char)(mbr & aByteMASK);
+
+}
+void loadstore(uint16_t instr, void *memory)
+{
+    uint8_t rn = RN(instr);
+    uint8_t rd = RD(instr);
+
+    //LOAD
+
+    if(LSload(instr))
+    {
+        if(LSdword(instr)){
+//          pull(&ALU, ((uint32_t *) &rn), memory);
+                r[rd] = load(r[rn], memory);
+                r[rd] = r[rd] & aByteMASK;
+        }
+        else
+//          pull(&ALU, ((uint32_t *) &rn), memory);
+                r[rd] = load(r[rn], memory);
+    }
+
+    //STORE
+
+    else
+    {
+        mbr = r[rd];
+
+        if(LSdword(instr)){
+//          push(mbr, ((uint32_t *) &rn), memory);
+        mar = r[rn];
+        mbr = r[rd];
+        *((unsigned char *) memory + mar) = (unsigned char) mbr & aByteMASK;
+        }
+        else
+//          *((uint8_t *) memory + rn) = (uint8_t) (r[rd] & aByteMASK);
+        store(r[rn], r[rd], memory);
+    }
+}
+
+/*
+   pushpull
+
+   This function handles the push and pull instruction.
+   It will store or load register values from memory
+   if need be.
+
+
+ */
+
+void pushpull(uint16_t instr, void *memory)
+{
+
+    uint8_t i, j;
+    uint8_t maskset[] = { regmask1, regmask2, regmask3,
+        regmask4, regmask5, regmask6,
+        regmask7, regmask8 };
+
+    uint8_t REGset = PPGETreg(instr);
+
+
+    //PUSH
+
+    if(PPush(instr)){
+        if(PPextra(instr))
+            push(LR, &mar, memory);
+        if(PPhigh(instr))
+            for(i = HIGHreg, j = 0; i < sixteen; i++)
+            {
+                if(maskset[j++] & REGset)
+                {
+                    SP = (SP - regsize);
+                    push(r[i], &mar, memory);
+                }
+            }
+        else
+            for(i = 0; i <= LOWreg; i++)
+                if(maskset[i] & REGset){
+                    SP = (SP - regsize);
+                    push(r[i], &mar, memory);
+                }
+
+    }
+
+    //PULL
+
+    else {
+
+        if(PPhigh(instr))
+            for(i = HIGHreg, j = sixteen; i >= HIGHreg; i--)
+                if(maskset[j--] & REGset)
+                {
+                    pull(&mbr, &mar, memory);
+                    SP = (SP + regsize);
+                }
+                else
+                    for(i = LOWreg; i <= 0; i--)
+                        if(maskset[i] & REGset)
+                        {
+                            pull(&mbr, &mar, memory);
+                            SP = (SP + regsize);
+                        }
+
+        if(PPextra(instr))
+            pull(&PC, &mar, memory);
+
+    }
+
+    return;
+
+}
+
+
+/*
+
+   condbr
+
+   The function to handle conditional branch
+   instructions.
+
+ */
+
+
+
+void condbr(uint16_t instr)
+{
+
+
+
+    int8_t addr = CONDGETaddr(instr);
+
+    ALU = PC + addr;
+
+if(irflag != 0){
+        irflag = 0;
+        ALU = ALU + ~2 + 1;
+        }
+PC = ALU;
+
+    switch(CONDGETop(instr))
+    {
+
+        case CONDal:
+            PC += addr;
+            break;
+        case CONDeq:
+            if(isZEROset(ccr))
+                PC += addr;
+            break;
+        case CONDne:
+            if(!isZEROset(ccr))
+                PC+=addr;
+            break;
+        case CONDcs:
+            if(isCARRYset(ccr))
+                PC+=addr;
+            break;
+        case CONDcc:
+            if(!isCARRYset(ccr))
+                PC+=addr;
+            break;
+        case CONDmi:
+            if(isSIGNset(ccr))
+                PC+=addr;
+            break;
+        case CONDpl:
+            if(!isSIGNset(ccr))
+                PC+=addr;
+            break;
+        case CONDhi:
+            if(isCARRYset(ccr) && !isSIGNset(ccr))
+                PC+=addr;
+            break;
+        case CONDls:
+            if(!isCARRYset(ccr) && isSIGNset(ccr))
+                PC+=addr;
+            break;
+    }
+
+}
+
+
+/*
+
+   uncondbr
+
+
+   This function will work with the unconditional branches
+   as opposed to conditional branches.
+
+ */
+
+void uncondbr(uint16_t instr, void *memory)
+{
+
+
+    uint16_t addr = UNBRGEToff(instr);
+
+    mar=addr;
+
+    if(isUNBRA(instr)){
+        PC = (uint32_t) addr;
+        return;
+    }
+
+    if(isUNBRL(instr)){
+        push(LR, &mar, memory);
+        PC = (uint32_t) addr;
+        return;
+    }
+    return;
+}
+
+/*
+   push
+
+
+   Pushes a full register into memory.
+
+ */
+
+void push(uint32_t regist, uint32_t *marx, void *memory)
+{
+    *((uint8_t *) memory + (*marx++)) = (uint8_t) byte4(regist);
+    *((uint8_t *) memory + (*marx++)) = (uint8_t) byte3(regist);
+    *((uint8_t *) memory + (*marx++)) = (uint8_t) byte2(regist);
+    *((uint8_t *) memory + *marx) = (uint8_t) byte1(regist);
+    return;
+}
+
+
+/*
+   pull
+
+   (Can) pull a full register from memory, starting
+   from the most significant byte.
+
+ */
+void pull(uint32_t *mbrx, uint32_t *marx, void *memory)
+{
+
+
+    *mbrx = *((uint8_t *) memory + (*marx)++);
     *mbrx = (*mbrx << aByte);
 
-    *mbrx |= *((unsigned int *) memory + (*marx)++);
+    *mbrx |= *((uint8_t *) memory + (*marx)++);
     *mbrx = (*mbrx << aByte);
 
-    *mbrx |= *((unsigned int *) memory + (*marx)++);
+    *mbrx |= *((uint8_t *) memory + (*marx)++);
     *mbrx = (*mbrx << aByte);
 
-    *mbrx |= *((unsigned int *) memory + (*marx)++);
+    *mbrx |= *((uint8_t *) memory + (*marx)++);
 
 }
 
 //SCZ -> Checks for SIGN, CARRY, and ZERO flags
 
 
-void SCZ(unsigned int op1, unsigned int op2)
+void SCZ(uint32_t op1, uint32_t op2)
 {
 
     //SIGN
@@ -1052,12 +1045,12 @@ void SZ()
 
 
 /*
-        isREGmask
+   isREGmask
 
-        Checks if it's a valid CCR mask
-*/
+   Checks if it's a valid CCR mask
+ */
 
-unsigned int isREGMASK(unsigned int mask)
+uint8_t isREGMASK(uint16_t mask)
 {
     if(mask == SIGNF)
         return SIGNF;
@@ -1068,11 +1061,12 @@ unsigned int isREGMASK(unsigned int mask)
     if(mask == ((STOPF | IRF) | CARRYF))
         return ((STOPF | IRF) | CARRYF);
 
+return 0;
 }
 
 //Toggles valid flag (mask)
 
-void toggle(unsigned int mask, unsigned long *control)
+void toggle(uint16_t mask, uint32_t *control)
 {
 
     if(isREGMASK(mask))
@@ -1083,7 +1077,7 @@ void toggle(unsigned int mask, unsigned long *control)
 
 //Sets the flag given
 
-void set(unsigned int mask, unsigned long *control)
+void set(uint16_t mask, uint32_t *control)
 {
 
     if(isREGMASK(mask))
@@ -1093,7 +1087,7 @@ void set(unsigned int mask, unsigned long *control)
 
 //Clears the given flag (sets it to 0)
 
-void clear(unsigned int mask, unsigned long *control)
+void clear(uint16_t mask, uint32_t *control)
 {
     if(isREGMASK(mask))
         *control &= ~mask;
